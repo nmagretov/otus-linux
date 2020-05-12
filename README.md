@@ -3,6 +3,6 @@
 * [Как начать Git](git_quick_start.md)
 * [Как начать Vagrant](vagrant_quick_start.md)
 
-## otus-linux
+## otus-linux курс 04-2020
 
-Используйте этот [Vagrantfile](Vagrantfile) - для тестового стенда.
+В добрый путь!
