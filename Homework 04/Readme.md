@@ -34,7 +34,7 @@ zfs send otus/storage@task2 > otus_task2.file
 
 # Сделано
 
-все команды описаны в [script.sh](https://github.com/nmagretov/otus-linux/blob/master/Homework%2004/script.sh)
+все команды описаны в [script.sh](script.sh)
 
 ## Определить алгоритм с наилучшим сжатием
 
