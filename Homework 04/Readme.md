@@ -34,6 +34,8 @@ zfs send otus/storage@task2 > otus_task2.file
 
 # Сделано
 
+все команды описаны в [script.sh](https://github.com/nmagretov/otus-linux/blob/master/Homework%2004/script.sh)
+
 ## Определить алгоритм с наилучшим сжатием
 
 уровень сжатия одинаков (по крайней мере для одного текстового файла) для алгоритомов gzip, gzip-9 (максимальный уровень для gzip),lz4 и zle
