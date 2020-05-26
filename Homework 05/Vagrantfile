@@ -1,23 +1,89 @@
-Vagrant.configure(2) do |config|
-    config.vm.define "vm-1" do |subconfig|
-        subconfig.vm.box = "centos/7"
-        subconfig.vm.hostname="vm-1"
-        subconfig.vm.network :private_network, ip: "192.168.50.11"
-        subconfig.vm.provider "virtualbox" do |vb|
-            vb.memory = "1024"
-            vb.cpus = "1"
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+
+home = ENV['HOME']
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+MACHINES = {
+  :server => {
+        :box_name => 'centos/7',
+        :box_version => '2004.01',
+        :vb_name => 'server',
+        :ip_addr => '192.168.50.50',
+        :hostname => 'hw05-nfs-server',
+        :memory => '1024',
+        :cpus => '1',
+        :disks => {
+            :sata1 => {
+                :dfile => home + '/VirtualBox VMs/server-sata1.vdi',
+                :size => 100, # Megabytes
+                :port => 1
+            },
+            :sata2 => {
+                :dfile => home + '/VirtualBox VMs/server-sata2.vdi',
+                :size => 100, # Megabytes
+                :port => 2
+            }
+        }
+  },
+  :client => {
+        :box_name => 'centos/7',
+        :box_version => '2004.01',
+        :vb_name => 'client',
+        :ip_addr => '192.168.50.51',
+        :hostname => 'hw05-nfs-client',
+        :memory => '1024',
+        :cpus => '1',
+        :disks => {
+        }
+  },
+}
+Vagrant.configure("2") do |config|
+    if Vagrant.has_plugin?("vagrant-timezone")  # requires installed vagrant-timezone plugin
+        config.timezone.value = "Asia/Almaty"   # vagrant plugin install vagrant-timezone
+      end
+    MACHINES.each do |boxname, boxconfig|
+        config.vm.define boxname do |box|
+            box.vm.box = boxconfig[:box_name]
+            box.vm.host_name = boxconfig[:hostname]
+            box.vm.network "private_network", ip: boxconfig[:ip_addr]
+            box.vm.provider :virtualbox do |vb|
+                vb.name = boxconfig[:vb_name]
+                vb.memory = boxconfig[:memory]
+                vb.cpus = boxconfig[:cpus]
+                needsController = false
+                boxconfig[:disks].each do |dname, dconf|
+                    unless File.exist?(dconf[:dfile])
+                    vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
+                        needsController =  true
+                end
+            end
+                    if needsController == true
+                        vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
+                        boxconfig[:disks].each do |dname, dconf|
+                            vb.customize ['storageattach', :id,  '--storagectl', 'SATA', '--port', dconf[:port], '--device', 0, '--type', 'hdd', '--medium', dconf[:dfile]]
+                        end
+                    end
+             end
+    # section for provisioning all vms
+             box.vm.provision "shell", inline: <<-SHELL
+               # yum install -y net-tools mdadm smartmontools gdisk wget tree mc iotop sysstat htop ncdu
+            SHELL
+            end
         end
-    end
-    config.vm.define "vm-2" do |subconfig|
-        subconfig.vm.box = "centos/7"
-        subconfig.vm.hostname="vm-2"
-        subconfig.vm.network :private_network, ip: "192.168.50.12"
-        subconfig.vm.provider "virtualbox" do |vb|
-            vb.memory = "1024"
-            vb.cpus = "1"
+    # section for provisioning server
+        config.vm.define "server" do |server|
+            server.vm.provision "shell", inline: <<-SHELL
+                echo "Starting provisioning" `hostname`
+            SHELL
+            server.vm.provision "shell", path: "scripts/server.sh" 
         end
-    end
-    config.ssh.insert_key = false
-    config.ssh.private_key_path = ['~/.vagrant.d/insecure_private_key', '~/.ssh/id_rsa']
-    config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+        
+    # section for provisioning client
+        config.vm.define "client" do |client|
+            client.vm.provision "shell", inline: <<-SHELL
+                echo "Starting provisioning" `hostname`
+            SHELL
+            client.vm.provision "shell", path: "scripts/client.sh" 
+        end
     end
