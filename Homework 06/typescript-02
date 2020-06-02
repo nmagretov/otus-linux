@@ -1,0 +1,8 @@
+Скрипт запущен Вт 02 июн 2020 21:53:45
+]0;root@centos7:~[?1034h[root@centos7 ~]# vgs
+  VG       #PV #LV #SN Attr   VSize  VFree
+  OtusRoot   1   2   0 wz--n- <7,00g    0 
+]0;root@centos7:~[root@centos7 ~]# exit 
+exit
+
+Скрипт выполнен Вт 02 июн 2020 21:54:01
